@@ -1,12 +1,12 @@
 name: WINDOWS RDP - CLOUDFLARE
+
 on:
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
     timeout-minutes: 9999
-
     steps:
       - name: Setup Cloudflared
         uses: AnimMouse/setup-cloudflared@v2
@@ -15,31 +15,26 @@ jobs:
         run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
-          Write-Host "✅ RDP Enabled Successfully!"
+          Write-Host "✅ RDP Enabled"
 
       - name: Set Administrator Password
         run: |
           Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd123!" -Force)
-          Write-Host "✅ Password Configured!"
+          Write-Host "✅ Password Set"
 
-      - name: Start Cloudflare Tunnel
+      - name: Start Cloudflare Tunnel (Fixed - Direct)
         run: |
           Write-Host "============================================"
           Write-Host "🚀 WINDOWS RDP - CLOUDFLARE TUNNEL"
           Write-Host "============================================"
           Write-Host ""
-          Start-Process PowerShell -ArgumentList '-NoExit -Command "cloudflared tunnel --url tcp://localhost:3389"'
-          Start-Sleep -Seconds 15
+          cloudflared tunnel --url rdp://localhost:3389
           Write-Host ""
-          Write-Host "✅ TUNNEL STARTED! Check separate PowerShell window for URL"
+          Write-Host "✅ TUNNEL STARTED!"
           Write-Host ""
           Write-Host "📋 CONNECTION DETAILS:"
           Write-Host "   USERNAME: runneradmin"
           Write-Host "   PASSWORD: P@ssw0rd123!"
-          Write-Host "   OS: Windows Server 2022"
-          Write-Host "   CPU: 4 cores"
-          Write-Host "   RAM: 16GB"
           Write-Host "============================================"
 
       - name: Keep Session Alive
